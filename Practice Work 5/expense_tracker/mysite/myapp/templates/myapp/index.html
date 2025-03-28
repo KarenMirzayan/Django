@@ -1,0 +1,465 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+{% block body %}
+
+    <h1>This is the index page</h1>
+
+    <!-- Expense Form -->
+    <form class="shadow-lg m-10 rounded-lg" method="post">
+        {% csrf_token %}
+        <div class="form-container px-10 py-10 flex">
+            <div class="mx-10">
+                <div class="mb-5">
+                    <label>Expense name</label>
+                </div>
+                <div class="border">
+                    {{ expense_form.name }}
+                </div>
+            </div>
+
+            <div class="mx-10">
+                <div class="mb-5">
+                    <label>Expense amount</label>
+                </div>
+                <div class="border">
+                    {{ expense_form.amount }}
+                </div>
+            </div>
+
+            <div class="mx-10">
+                <div class="mb-5">
+                    <label>Expense category</label>
+                </div>
+                <div class="border">
+                    {{ expense_form.category }}
+                </div>
+            </div>
+
+            <div class="mx-10 mt-8">
+                <button class="bg-green-500 px-5 py-2 rounded-lg text-white font-semibold" name="add_expense">
+                    Add Expense
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- New Category Form -->
+    <form class="shadow-lg m-10 rounded-lg" method="post">
+        {% csrf_token %}
+        <div class="form-container px-10 py-10 flex">
+            <div class="mx-10">
+                <div class="mb-5">
+                    <label>New Category Name</label>
+                </div>
+                <div class="border">
+                    {{ category_form.name }}
+                </div>
+            </div>
+
+            <div class="mx-10 mt-8">
+                <button class="bg-green-500 px-5 py-2 rounded-lg text-white font-semibold" name="add_category">
+                    Add Category
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Expense Filtering Form -->
+    <form method="get" action="{% url 'index' %}" class="flex flex-wrap p-5 shadow-lg rounded-lg m-10">
+        <div class="mx-5">
+            <label class="font-semibold">Start Date:</label>
+            <input type="date" name="start_date" class="border px-3 py-1 rounded-md"
+                   value="{{ request.GET.start_date }}">
+        </div>
+
+        <div class="mx-5">
+            <label class="font-semibold">End Date:</label>
+            <input type="date" name="end_date" class="border px-3 py-1 rounded-md" value="{{ request.GET.end_date }}">
+        </div>
+
+        <div class="mx-5">
+            <label class="font-semibold">Category:</label>
+            <select name="category" class="border px-3 py-1 rounded-md">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}"
+                            {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mx-5 mt-5">
+            <button type="submit" class="bg-blue-500 px-4 py-2 text-white font-semibold rounded-lg">Filter</button>
+            <a href="{% url 'index' %}" class="ml-2 text-red-500">Reset</a>
+        </div>
+    </form>
+
+    <!-- Group Expense Form -->
+<form class="shadow-lg m-10 rounded-lg" method="post">
+    {% csrf_token %}
+    <div class="form-container px-10 py-10 flex">
+        <div class="mx-10">
+            <div class="mb-5">
+                <label>Expense name</label>
+            </div>
+            <div class="border">
+                {{ group_expense_form.name }}
+            </div>
+        </div>
+
+        <div class="mx-10">
+            <div class="mb-5">
+                <label>Amount</label>
+            </div>
+            <div class="border">
+                {{ group_expense_form.amount }}
+            </div>
+        </div>
+
+        <div class="mx-10">
+            <div class="mb-5">
+                <label>Category</label>
+            </div>
+            <div class="border">
+                {{ group_expense_form.category }}
+            </div>
+        </div>
+
+        <div class="mx-10">
+            <div class="mb-5">
+                <label>Participants</label>
+            </div>
+            <div class="border">
+                {{ group_expense_form.users }}
+            </div>
+        </div>
+
+        <div class="mx-10 mt-8">
+            <button class="bg-green-500 px-5 py-2 rounded-lg text-white font-semibold" name="add_group_expense">
+                Add Group Expense
+            </button>
+        </div>
+    </div>
+</form>
+
+
+    <!-- Expenses Table -->
+    <div>Expenses table</div>
+    <div class="shadow-lg m-10 rounded-lg">
+        <div class="expense-header flex flex-wrap space-x-40">
+            <span>Name</span>
+            <span>Amount</span>
+            <span>Category</span>
+            <span>Date</span>
+            <span>Edit</span>
+            <span>Delete</span>
+        </div>
+        <hr class="m-10">
+        {% for expense in expenses %}
+            <div class="expense-row flex-wrap px-20 py-5">
+                <span class="font-bold">{{ expense.name }}</span>
+                <span class="font-bold">{{ expense.amount }}</span>
+                <span class="font-bold">{{ expense.category }}</span>
+                <span class="font-bold">{{ expense.date }}</span>
+                <span class="pl-24">
+            <a href="{% url 'edit' expense.id %}">
+                <img class="h-7" src="{% static 'myapp/images/edit.png' %}" alt="Edit">
+            </a>
+        </span>
+                <span class="pl-22">
+            <form method="post" action="{% url 'delete' expense.id %}">
+                {% csrf_token %}
+                <button type="submit" name="delete">
+                    <img class="h-7" src="{% static 'myapp/images/delete.png' %}" alt="Delete">
+                </button>
+            </form>
+        </span>
+            </div>
+        {% endfor %}
+
+        <div class="px-72 py-5">
+            <span class="font-bold text-green-500">Total: {{ total_expenses.amount__sum }}</span>
+        </div>
+    </div>
+
+    <!-- Group Expenses Table -->
+    <div>Group Expenses Table</div>
+    <div class="shadow-lg m-10 rounded-lg">
+        <div class="expense-header flex flex-wrap space-x-28">
+            <span>Name</span>
+            <span>Amount</span>
+            <span>Category</span>
+            <span>Date</span>
+            <span>Users</span>
+            <span>My Share</span>
+            <span>Edit</span>
+            <span>Delete</span>
+        </div>
+        <hr class="m-10">
+        {% for expense in group_expenses %}
+            <div class="expense-row flex-wrap px-20 py-5">
+                <span class="font-bold">{{ expense.name }}</span>
+                <span class="font-bold">{{ expense.amount }}</span>
+                <span class="font-bold">{{ expense.category }}</span>
+                <span class="font-bold">{{ expense.date }}</span>
+
+                <!-- Display Participating Users -->
+                <span class="font-bold">
+            {% for user in expense.users.all %}
+                {{ user.username }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </span>
+
+                <!-- Show User's Share -->
+                <span class="text-green-500 font-bold">
+            {{ expense.split_amount }}
+        </span>
+
+                <span class="pl-10">
+            <a href="{% url 'edit_group_expense' expense.id %}">
+                <img class="h-7" src="{% static 'myapp/images/edit.png' %}" alt="Edit">
+            </a>
+        </span>
+                <span class="pl-10">
+            <form method="post" action="{% url 'delete_group_expense' expense.id %}">
+                {% csrf_token %}
+                <button type="submit" name="delete">
+                    <img class="h-7" src="{% static 'myapp/images/delete.png' %}" alt="Delete">
+                </button>
+            </form>
+        </span>
+            </div>
+        {% endfor %}
+        <div class="px-72 py-5">
+            <span class="font-bold text-green-500">Total: {{ total_group_expenses.amount__sum }}</span>
+        </div>
+    </div>
+
+    <div class="flex">
+        <div class="w-1/3 shadow-lg ml-10 rounded-lg">
+            <h1 class="ml-10 font-bold text-gray-500">
+                Last 365 days expenses
+            </h1>
+            <h1 class="ml-10 my-5 text-2xl text-green-500 font-semibold">
+                {{ total_yearly_sum }}
+            </h1>
+        </div>
+
+        <div class="w-1/3 shadow-lg ml-10 rounded-lg">
+            <h1 class="ml-10 font-bold text-gray-500">
+                Last 30 days expenses
+            </h1>
+            <h1 class="ml-10 my-5 text-2xl text-green-500 font-semibold">
+                {{ total_monthly_sum}}
+            </h1>
+        </div>
+
+        <div class="w-1/3 shadow-lg ml-10 rounded-lg">
+            <h1 class="ml-10 font-bold text-gray-500">
+                Last 7 days expenses
+            </h1>
+            <h1 class="ml-10 my-5 text-2xl text-green-500 font-semibold">
+                {{ total_weekly_sum }}
+            </h1>
+        </div>
+    </div>
+
+
+    <div class="flex">
+        <div class="w-1/2 shadow-lg m-10">
+            <div class="flex flex-wrap space-x-40 font-bold px-20 py-5">
+                <span>Expenses by days</span>
+            </div>
+            <hr>
+            <div id="30-day-table">
+                {% for daily_sum in daily_sums %}
+                    <div class="flex flex-wrap px-20 py-5">
+                        <span>{{ daily_sum.date }}</span>
+                    </div>
+                    <div class="flex flex-wrap px-20 py-5">
+                        <span class="text-green-500">{{ daily_sum.sum }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="w-1/2 shadow-lg m-10">
+            <div class="flex flex-wrap space-x-40 font-bold px-20 py-5">
+                <span>Categorical expenses</span>
+            </div>
+            <hr>
+            <div id="categorical-table">
+                {% for categorical_sum in categorical_sums %}
+                    <div class="flex flex-wrap px-20 py-5">
+                        <span>{{ categorical_sum.category__name }}</span>
+                    </div>
+                    <div class="flex flex-wrap px-20 py-5">
+                        <span class="text-green-500">{{ categorical_sum.sum }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="flex">
+        <div class="w-1/2 shadow-lg m-10">
+            <div class="flex flex-wrap space-x-40 font-bold px-20 py-5">
+                <span>Group expenses by days</span>
+            </div>
+            <hr>
+            <div id="30-day-table">
+                {% for daily_sum in group_daily_sums %}
+                    <div class="flex flex-wrap px-20 py-5">
+                        <span>{{ daily_sum.date }}</span>
+                    </div>
+                    <div class="flex flex-wrap px-20 py-5">
+                        <span class="text-green-500">{{ daily_sum.sum }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="w-1/2 shadow-lg m-10">
+            <div class="flex flex-wrap space-x-40 font-bold px-20 py-5">
+                <span>Group categorical expenses</span>
+            </div>
+            <hr>
+            <div id="categorical-table">
+                {% for categorical_sum in group_categorical_sums %}
+                    <div class="flex flex-wrap px-20 py-5">
+                        <span>{{ categorical_sum.category__name }}</span>
+                    </div>
+                    <div class="flex flex-wrap px-20 py-5">
+                        <span class="text-green-500">{{ categorical_sum.sum }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="flex">
+        <div class="w-1/2 shadow-lg ml-10">
+            <h1 class="m-10">
+                Expenses spread across categories
+            </h1>
+            <canvas id="myChart" class="m-10"></canvas>
+        </div>
+        <div class="w-1/2 shadow-lg ml-10">
+            <h1 class="m-10">
+                Daily expenses sum chart
+            </h1>
+            <canvas id="myChart1" class="m-10"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.2/dist/chart.min.js"></script>
+
+    <script>
+
+        const cats = []
+        const cat_sums = []
+
+        const dates = []
+        const sums = []
+
+        const catSumDiv = document.getElementById('categorical-table').getElementsByTagName('div');
+
+        for (i = 0; i < catSumDiv.length; i++) {
+            if (i % 2 == 1) {
+                cat_sums.push(catSumDiv[i].innerText.replace("$", ""))
+            } else {
+                cats.push(catSumDiv[i].innerText)
+            }
+        }
+
+
+        const dailySumDiv = document.getElementById('30-day-table').getElementsByTagName('div');
+
+        for (i = 0; i < dailySumDiv.length; i++) {
+            if (i % 2 == 1) {
+                sums.push(dailySumDiv[i].innerText.replace("$", ""))
+            } else {
+                dates.push(dailySumDiv[i].innerText)
+            }
+        }
+
+
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: cats,
+                datasets: [{
+                    label: 'Expense across categories',
+                    data: cat_sums,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+
+        console.log(dates)
+        console.log(sums)
+        var ctx1 = document.getElementById('myChart1').getContext('2d');
+        var myChart1 = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Sum of daily expenses',
+                    data: sums,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+    </script>
+{% endblock %}
